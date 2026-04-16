@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fonte di Energia — Fosforo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -20,15 +23,15 @@
     overflow-x: hidden;
   }
 
-  h1 {
-    font-size: clamp(1.4rem, 3vw, 2.2rem);
+  h1, .grid-title {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    text-align: center;
-    margin-bottom: 4px;
     color: #f0e6d4;
     text-shadow: 0 2px 12px rgba(240,200,120,0.15);
+    margin: 0;
   }
 
   .subtitle {
@@ -36,6 +39,20 @@
     color: #8a7e6e;
     text-align: center;
     margin-bottom: 10px;
+  }
+
+  .grid-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: min(960px, calc(100vh * 1.15));
+    width: 100%;
+  }
+
+  .grid-row-area {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
   }
 
   .grid-wrapper {
@@ -261,28 +278,21 @@
     line-height: 1.5;
   }
 
-  /* Grid container with side label */
-  .grid-container {
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    max-width: min(960px, calc(100vh * 1.15));
-    width: 100%;
-  }
-
+  /* Side label */
   .side-label {
     display: none;
     align-items: center;
     justify-content: center;
     writing-mode: vertical-lr;
     transform: rotate(180deg);
-    font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
     font-weight: 700;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #c0b8a8;
+    color: #f0e6d4;
     white-space: nowrap;
-    padding: 0 10px;
+    padding: 0 8px;
     flex-shrink: 0;
   }
 
@@ -300,19 +310,20 @@
 </head>
 <body>
 
-<h1>Fonte di Energia</h1>
-
-<div class="grid-container">
-  <div class="side-label">Energia Ottenuta</div>
-  <div class="grid-wrapper" role="grid" aria-label="Tabella trasformazioni energetiche">
-  <!-- Corner -->
-  <div class="corner" role="columnheader"></div>
-  <!-- Column headers -->
-  <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Elettrica</span></div>
-  <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Meccanica</span></div>
-  <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Chimica</span></div>
-  <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Termica</span></div>
-  <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Luminosa</span></div>
+<div class="grid-outer">
+  <h1 id="main-title">Fonte di Energia</h1>
+  <div class="grid-row-area">
+    <div class="side-label" id="side-label">Energia Ottenuta</div>
+    <div class="grid-wrapper" role="grid" aria-label="Tabella trasformazioni energetiche">
+      <!-- Corner -->
+      <div class="corner" role="columnheader"></div>
+      <!-- Column headers -->
+      <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Elettrica</span></div>
+      <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Meccanica</span></div>
+      <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Chimica</span></div>
+      <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Termica</span></div>
+      <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Luminosa</span></div>
+    </div>
   </div>
 </div>
 
@@ -503,6 +514,29 @@ function resetAll() {
 document.getElementById("btn-reveal").addEventListener("click", revealAll);
 document.getElementById("btn-reset").addEventListener("click", resetAll);
 document.getElementById("btn-close").addEventListener("click", () => overlay.classList.remove("show"));
+
+// Centra titolo sulle colonne dati e side-label sulle righe dati
+function alignLabels() {
+  const sideLabel = document.getElementById("side-label");
+  const title = document.getElementById("main-title");
+  const corner = document.querySelector(".corner");
+  const firstHeader = document.querySelector(".col-header");
+  const rowHeader = document.querySelector(".row-header");
+  if (!corner || !firstHeader || !rowHeader) return;
+
+  // Offset titolo: side-label width + row-header width
+  const sideW = sideLabel && getComputedStyle(sideLabel).display !== "none" ? sideLabel.offsetWidth : 0;
+  const rhW = rowHeader.offsetWidth;
+  title.style.paddingLeft = (sideW + rhW) + "px";
+
+  // Offset side-label: col-header height
+  if (sideLabel && getComputedStyle(sideLabel).display !== "none") {
+    const headerH = corner.offsetHeight;
+    sideLabel.style.paddingBottom = headerH + "px";
+  }
+}
+requestAnimationFrame(alignLabels);
+window.addEventListener("resize", alignLabels);
 </script>
 </body>
 </html>
