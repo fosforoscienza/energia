@@ -225,10 +225,10 @@
     background: #1a3048;
     color: #c8b89a;
     border: 1px solid #2a4a60;
-    padding: 8px 20px;
-    border-radius: 8px;
+    padding: 4px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
     font-family: inherit;
     transition: all 0.2s;
   }
@@ -260,12 +260,31 @@
   }
   .complete-msg .inner {
     text-align: center;
-    padding: 40px;
+    padding: 32px 40px;
     background: #12283e;
     border: 2px solid #2a5070;
     border-radius: 16px;
     box-shadow: 0 0 40px rgba(42,80,112,0.4);
     max-width: 400px;
+  }
+  .confirm-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .confirm-buttons button {
+    padding: 6px 18px;
+    font-size: 0.8rem;
+  }
+  .btn-danger {
+    background: #4a2020 !important;
+    border-color: #703030 !important;
+    color: #e8a0a0 !important;
+  }
+  .btn-danger:hover {
+    background: #5a2828 !important;
+    border-color: #904040 !important;
   }
   .complete-msg h2 {
     font-size: 1.8rem;
@@ -339,6 +358,17 @@
     <h2>Complimenti!</h2>
     <p>Hai scoperto tutte le 20 trasformazioni energetiche!</p>
     <button id="btn-close" type="button">Chiudi</button>
+  </div>
+</div>
+
+<!-- Conferma overlay -->
+<div class="complete-msg" id="confirm-overlay">
+  <div class="inner">
+    <p id="confirm-text"></p>
+    <div class="confirm-buttons">
+      <button id="confirm-yes" class="btn-danger" type="button">Si</button>
+      <button id="confirm-no" type="button">Annulla</button>
+    </div>
   </div>
 </div>
 
@@ -511,8 +541,33 @@ function resetAll() {
   });
 }
 
-document.getElementById("btn-reveal").addEventListener("click", revealAll);
-document.getElementById("btn-reset").addEventListener("click", resetAll);
+const confirmOverlay = document.getElementById("confirm-overlay");
+const confirmText = document.getElementById("confirm-text");
+let confirmAction = null;
+
+function askConfirm(text, action) {
+  confirmText.textContent = text;
+  confirmAction = action;
+  confirmOverlay.classList.add("show");
+}
+
+document.getElementById("confirm-yes").addEventListener("click", () => {
+  confirmOverlay.classList.remove("show");
+  if (confirmAction) confirmAction();
+  confirmAction = null;
+});
+document.getElementById("confirm-no").addEventListener("click", () => {
+  confirmOverlay.classList.remove("show");
+  confirmAction = null;
+});
+
+document.getElementById("btn-reveal").addEventListener("click", () => {
+  askConfirm("Vuoi scoprire tutte le caselle?", revealAll);
+});
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (revealed.size === 0) return;
+  askConfirm("Vuoi rimettere tutti i punti interrogativi?", resetAll);
+});
 document.getElementById("btn-close").addEventListener("click", () => overlay.classList.remove("show"));
 
 // Centra titolo sulle colonne dati e side-label sulle righe dati
