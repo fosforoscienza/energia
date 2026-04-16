@@ -43,8 +43,8 @@
     grid-template-columns: auto repeat(5, 1fr);
     grid-template-rows: auto repeat(5, 1fr);
     gap: 3px;
-    max-width: min(900px, calc(100vh * 1.1));
-    width: 100%;
+    flex: 1;
+    min-width: 0;
   }
 
   /* Header cella vuota (angolo) */
@@ -261,24 +261,33 @@
     line-height: 1.5;
   }
 
-  /* Side labels */
+  /* Grid container with side label */
+  .grid-container {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    max-width: min(960px, calc(100vh * 1.15));
+    width: 100%;
+  }
+
   .side-label {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%) rotate(-90deg);
-    font-size: clamp(0.6rem, 1vw, 0.85rem);
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #6a6050;
-    white-space: nowrap;
-    pointer-events: none;
     display: none;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #c0b8a8;
+    white-space: nowrap;
+    padding: 0 10px;
+    flex-shrink: 0;
   }
 
   @media (min-width: 700px) {
-    .side-label { display: block; }
+    .side-label { display: flex; }
   }
 
   .fosforo-credit {
@@ -292,9 +301,10 @@
 <body>
 
 <h1>Fonte di Energia</h1>
-<p class="subtitle">Clicca sulle caselle per scoprire come si trasforma l'energia</p>
 
-<div class="grid-wrapper" role="grid" aria-label="Tabella trasformazioni energetiche">
+<div class="grid-container">
+  <div class="side-label">Energia Ottenuta</div>
+  <div class="grid-wrapper" role="grid" aria-label="Tabella trasformazioni energetiche">
   <!-- Corner -->
   <div class="corner" role="columnheader"></div>
   <!-- Column headers -->
@@ -303,6 +313,7 @@
   <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Chimica</span></div>
   <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Termica</span></div>
   <div class="col-header" role="columnheader"><span class="label-small">energia</span><span class="label-big">Luminosa</span></div>
+  </div>
 </div>
 
 <div class="controls">
@@ -423,11 +434,11 @@ for (let r = 0; r < 5; r++) {
       inner.appendChild(back);
       cell.appendChild(inner);
 
-      cell.addEventListener("click", () => revealCell(cell, key, desc));
+      cell.addEventListener("click", () => toggleCell(cell, key, desc));
       cell.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          revealCell(cell, key, desc);
+          toggleCell(cell, key, desc);
         }
       });
     }
@@ -436,19 +447,26 @@ for (let r = 0; r < 5; r++) {
   }
 }
 
-function revealCell(cell, key, desc) {
-  if (cell.classList.contains("flipped")) return;
-  cell.classList.add("flipped");
-  revealed.add(key);
-  counter.textContent = revealed.size;
-
-  // Aggiorna aria-label
+function toggleCell(cell, key, desc) {
   const r = parseInt(cell.dataset.row);
   const c = parseInt(cell.dataset.col);
-  cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc);
 
-  if (revealed.size === TOTAL) {
-    setTimeout(() => overlay.classList.add("show"), 600);
+  if (cell.classList.contains("flipped")) {
+    // Richiudi
+    cell.classList.remove("flipped");
+    revealed.delete(key);
+    counter.textContent = revealed.size;
+    cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc + " (coperta)");
+  } else {
+    // Apri
+    cell.classList.add("flipped");
+    revealed.add(key);
+    counter.textContent = revealed.size;
+    cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc);
+
+    if (revealed.size === TOTAL) {
+      setTimeout(() => overlay.classList.add("show"), 600);
+    }
   }
 }
 
@@ -459,7 +477,7 @@ function revealAll() {
     setTimeout(() => {
       const key = cell.dataset.row + "-" + cell.dataset.col;
       const desc = CELL_DESCS[key] || "";
-      revealCell(cell, key, desc);
+      toggleCell(cell, key, desc);
       // Mostra overlay dopo l'ultima cella della cascata
       if (i === total - 1 && revealed.size === TOTAL) {
         setTimeout(() => overlay.classList.add("show"), 600);
