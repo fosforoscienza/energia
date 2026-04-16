@@ -425,6 +425,7 @@ const CELL_DESCS = {
 const ENERGY = ["Elettrica", "Meccanica", "Chimica", "Termica", "Luminosa"];
 const TOTAL = 20;
 let revealed = new Set();
+let skipOverlay = false;
 
 const grid = document.querySelector(".grid-wrapper");
 const counter = document.getElementById("count");
@@ -505,30 +506,27 @@ function toggleCell(cell, key, desc) {
     counter.textContent = revealed.size;
     cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc);
 
-    if (revealed.size === TOTAL) {
+    if (revealed.size === TOTAL && !skipOverlay) {
       setTimeout(() => overlay.classList.add("show"), 600);
     }
   }
 }
 
 function revealAll() {
+  skipOverlay = true;
   const cells = document.querySelectorAll(".cell:not(.diagonal):not(.flipped)");
-  const total = cells.length;
   cells.forEach((cell, i) => {
     setTimeout(() => {
       const key = cell.dataset.row + "-" + cell.dataset.col;
       const desc = CELL_DESCS[key] || "";
       toggleCell(cell, key, desc);
-      // Mostra overlay dopo l'ultima cella della cascata
-      if (i === total - 1 && revealed.size === TOTAL) {
-        setTimeout(() => overlay.classList.add("show"), 600);
-      }
     }, i * 80);
   });
 }
 
 function resetAll() {
   overlay.classList.remove("show");
+  skipOverlay = false;
   revealed.clear();
   counter.textContent = "0";
   document.querySelectorAll(".cell.flipped").forEach(cell => {
