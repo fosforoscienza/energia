@@ -37,14 +37,13 @@ tablet e telefoni.
 
 ## Suoni
 
-Ogni carta scoperta produce il fruscio della carta girata e, appena questo è
-finito, una campanellina (i due suoni non si sovrappongono); richiudendola si
-sente solo il fruscio. Con "Scopri tutte" si sente solo il fruscio, più tenue,
-e la campanellina arriva una volta sola con l'ultima carta.
+Ogni carta scoperta suona una campanellina; richiudendo una carta non si sente
+nulla. Con "Scopri tutte" la campanellina arriva una volta sola, con l'ultima
+carta, invece di squillare venti volte.
 
-I suoni sono **sintetizzati al volo** con la Web Audio API: non ci sono file
-audio da scaricare, quindi funzionano anche offline. Il pulsante
-**"Suono ON / OFF"** li disattiva e la scelta viene ricordata sul dispositivo.
+Il suono è **sintetizzato al volo** con la Web Audio API: non ci sono file
+audio da scaricare, quindi funziona anche offline. Il pulsante
+**"Suono ON / OFF"** lo disattiva e la scelta viene ricordata sul dispositivo.
 
 ## Struttura
 
