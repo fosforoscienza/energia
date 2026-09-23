@@ -27,9 +27,30 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
-PAGINA = Path(__file__).resolve().parent / "index.html"
+CARTELLA = Path(__file__).resolve().parent
+# nomi accettati: quello del repository e quello del file scaricato dal sito
+NOMI_PAGINA = ("index.html", "fonte-di-energia-offline.html")
 ATTESA_LONGPOLL = 25      # secondi di attesa prima di rispondere "nessuna novita'"
 LIMITE_CORPO = 64 * 1024  # una richiesta di stato non supera qualche centinaio di byte
+
+
+def trova_pagina(indicata=None):
+    """Il file del gioco da servire: quello indicato, o il primo nome noto."""
+    if indicata:
+        percorso = Path(indicata).expanduser()
+        if not percorso.is_absolute():
+            percorso = CARTELLA / percorso
+        if not percorso.exists():
+            raise SystemExit(f"Non trovo {percorso}.")
+        return percorso
+    for nome in NOMI_PAGINA:
+        if (CARTELLA / nome).exists():
+            return CARTELLA / nome
+    raise SystemExit(
+        "Non trovo la pagina del gioco.\n"
+        f"Metti {NOMI_PAGINA[0]} (o il file scaricato dal sito) nella cartella "
+        f"{CARTELLA}, oppure indicalo con --pagina."
+    )
 
 
 class StatoCondiviso:
@@ -64,20 +85,20 @@ class StatoCondiviso:
 stato = StatoCondiviso()
 
 
-def pagina_con_modalita_locale(indirizzo):
-    """index.html con il flag che accende la sincronizzazione nel browser.
+def pagina_con_modalita_locale(pagina, indirizzo):
+    """La pagina del gioco con il flag che accende la sincronizzazione.
 
-    Va nel <head>: lo script della pagina gira durante il parsing del <body>,
-    quindi un flag messo piu' in basso arriverebbe troppo tardi.
+    Il flag va nel <head>: lo script della pagina gira durante il parsing del
+    <body>, quindi un flag messo piu' in basso arriverebbe troppo tardi.
     """
-    html = PAGINA.read_text(encoding="utf-8")
+    html = pagina.read_text(encoding="utf-8")
     iniezione = (
         "<script data-modo-locale>window.__MODO_LOCALE__ = "
         + json.dumps({"url": indirizzo})
         + ";</script>\n</head>"
     )
     if "</head>" not in html:
-        raise SystemExit("index.html non ha </head>: impossibile attivare la modalita' locale.")
+        raise SystemExit(f"{pagina.name} non ha </head>: impossibile attivare la modalita' locale.")
     return html.replace("</head>", iniezione, 1).encode("utf-8")
 
 
@@ -107,8 +128,9 @@ class Gestore(BaseHTTPRequestHandler):
         percorso = urlparse(self.path)
 
         if percorso.path in ("/", "/index.html"):
-            self._rispondi(pagina_con_modalita_locale(self.server.indirizzo_ipad),
-                           tipo="text/html; charset=utf-8")
+            self._rispondi(
+                pagina_con_modalita_locale(self.server.pagina, self.server.indirizzo_ipad),
+                tipo="text/html; charset=utf-8")
             return
 
         if percorso.path == "/api/stato":
@@ -163,21 +185,30 @@ def ip_locale():
 def main():
     parser = argparse.ArgumentParser(description="Telecomando locale per Fonte di Energia")
     parser.add_argument("--porta", type=int, default=8000, help="porta del server (default 8000)")
+    parser.add_argument("--pagina", default=None,
+                        help="file del gioco da servire (default: index.html nella cartella)")
     argomenti = parser.parse_args()
 
-    if not PAGINA.exists():
-        raise SystemExit(f"Manca {PAGINA.name}: metti questo script nella stessa cartella.")
-
+    pagina = trova_pagina(argomenti.pagina)
     indirizzo_ipad = f"http://{ip_locale()}:{argomenti.porta}"
-    server = ThreadingHTTPServer(("0.0.0.0", argomenti.porta), Gestore)
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", argomenti.porta), Gestore)
+    except OSError as errore:
+        raise SystemExit(
+            f"Non riesco ad aprire la porta {argomenti.porta}: {errore}.\n"
+            "Probabilmente e' gia' in uso: riprova con --porta 8001."
+        )
     server.daemon_threads = True
     server.indirizzo_ipad = indirizzo_ipad
+    server.pagina = pagina
 
     print()
     print("  Fonte di Energia — telecomando locale (niente internet)")
     print("  " + "-" * 52)
     print(f"  Proiettore (questo computer):  http://localhost:{argomenti.porta}")
     print(f"  iPad (stessa rete Wi-Fi):      {indirizzo_ipad}")
+    print()
+    print(f"  Pagina servita: {pagina.name}")
     print()
     print("  Le carte scoperte da un dispositivo compaiono su tutti gli altri.")
     print("  Ctrl+C per fermare.")

@@ -68,9 +68,15 @@ carta scoperta dall'iPad compare sul proiettore (e viceversa), come pure
 "Scopri tutte" e "Reset". Possono collegarsi anche più dispositivi, e chi
 arriva dopo si allinea da solo.
 
-Serve solo Python 3, nessuna libreria da installare. Lo stato viaggia con un
-long-poll su `/api/stato`, quindi le carte compaiono sull'altro schermo in un
-paio di decimi di secondo. Ctrl+C per fermare il server.
+Servono solo Python 3 e i due file nella stessa cartella (`telecomando.py` e
+`index.html`); va bene anche il file scaricato dal sito col pulsante "Scarica
+per uso offline", che lo script riconosce da solo — oppure indicalo con
+`--pagina nome-file.html`. Nessuna libreria da installare e nessuna
+connessione a internet.
+
+Lo stato viaggia con un long-poll su `/api/stato`, quindi le carte compaiono
+sull'altro schermo in un paio di decimi di secondo. Ctrl+C per fermare il
+server; se la porta è occupata, usa `--porta 8001`.
 
 ## Struttura
 
