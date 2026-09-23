@@ -45,10 +45,19 @@ Il suono è **sintetizzato al volo** con la Web Audio API: non ci sono file
 audio da scaricare, quindi funziona anche offline. Il pulsante
 **"Suono ON / OFF"** lo disattiva e la scelta viene ricordata sul dispositivo.
 
+## Icona
+
+L'icona (fulmine bianco su fondo oro) è incorporata nell'HTML come data URI
+nelle misure 16, 32, 180 (schermata Home iOS) e 192 px, quindi vale per la
+scheda del browser, i preferiti e la copia offline. La sorgente a 512 px è
+`icona.png`: per sostituirla basta rigenerare le quattro misure e rimpiazzare
+i `<link rel="icon">` nel `<head>` di `index.html`.
+
 ## Struttura
 
 | File | Contenuto |
 | --- | --- |
 | `index.html` | Il gioco completo: markup, CSS, JavaScript, immagini e font incorporati |
 | `genera_energia.py` | Script storico di ritaglio delle celle dalla griglia originale (non più allineato a `index.html`) |
+| `icona.png` | Sorgente a 512 px dell'icona incorporata nella pagina |
 | `vercel.json` | Header di sicurezza del deploy (CSP, X-Frame-Options, ecc.) |
