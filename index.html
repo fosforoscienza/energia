@@ -585,11 +585,16 @@ function contestoAudio() {
   return audioCtx;
 }
 
-// Fruscio della carta che gira: rumore filtrato con sweep verso l'acuto
+// Fruscio della carta che gira: rumore filtrato con sweep verso l'acuto.
+// Restituisce l'istante (orologio audio) in cui il fruscio finisce, cosi' la
+// campanellina puo' partire dopo senza sovrapporsi.
+const DURATA_CARTA = 0.17;
+const PAUSA_TRA_SUONI = 0.04;
+
 function suonoCarta(volume) {
   const ac = contestoAudio();
-  if (!ac) return;
-  const durata = 0.17;
+  if (!ac) return 0;
+  const durata = DURATA_CARTA;
   const campioni = Math.max(1, Math.ceil(ac.sampleRate * durata));
   const buffer = ac.createBuffer(1, campioni, ac.sampleRate);
   const dati = buffer.getChannelData(0);
@@ -611,13 +616,14 @@ function suonoCarta(volume) {
   guadagno.connect(ac.destination);
   sorgente.start();
   sorgente.stop(ac.currentTime + durata + 0.02);
+  return ac.currentTime + durata;
 }
 
 // Campanellina: partiali inarmonici con decadimento esponenziale
-function suonoCampanella(volume) {
+function suonoCampanella(volume, quando) {
   const ac = contestoAudio();
   if (!ac) return;
-  const inizio = ac.currentTime + 0.07;
+  const inizio = Math.max(quando || 0, ac.currentTime + 0.02);
   const fondamentale = 1568; // sol6
   const partiali = [[1, 1], [2.01, 0.45], [2.98, 0.26], [4.17, 0.13]];
   const uscita = ac.createGain();
@@ -637,6 +643,12 @@ function suonoCampanella(volume) {
     osc.start(inizio);
     osc.stop(inizio + durata + 0.05);
   });
+}
+
+// Carta scoperta: fruscio e, appena finito, campanellina
+function suonoScoperta(volumeCarta, volumeCampanella) {
+  const fineCarta = suonoCarta(volumeCarta);
+  if (fineCarta) suonoCampanella(volumeCampanella, fineCarta + PAUSA_TRA_SUONI);
 }
 
 const btnAudio = document.getElementById("btn-audio");
@@ -740,11 +752,14 @@ function toggleCell(cell, key, desc) {
     counter.textContent = revealed.size;
     cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc + " (coperta)");
   } else {
-    // Apri: fruscio della carta e campanellina
-    // (durante "Scopri tutte" il fruscio e' piu' tenue e la campanellina
-    //  suona una volta sola alla fine, per non sovrapporre 20 squilli)
-    suonoCarta(sequenzaInCorso ? 0.25 : 0.55);
-    if (!sequenzaInCorso) suonoCampanella(0.11);
+    // Apri: prima il fruscio della carta, poi la campanellina
+    // (durante "Scopri tutte" si sente solo il fruscio, piu' tenue: la
+    //  campanellina arriva una volta sola, con l'ultima carta)
+    if (sequenzaInCorso) {
+      suonoCarta(0.25);
+    } else {
+      suonoScoperta(0.55, 0.11);
+    }
     cell.classList.add("flipped");
     revealed.add(key);
     counter.textContent = revealed.size;
@@ -760,11 +775,9 @@ function revealAll() {
     setTimeout(() => {
       const key = cell.dataset.row + "-" + cell.dataset.col;
       const desc = CELL_DESCS[key] || "";
+      // l'ultima carta esce dalla sequenza: fruscio pieno + campanellina finale
+      if (i === cells.length - 1) sequenzaInCorso = false;
       toggleCell(cell, key, desc);
-      if (i === cells.length - 1) {
-        sequenzaInCorso = false;
-        suonoCampanella(0.13);
-      }
     }, i * 80);
   });
 }
