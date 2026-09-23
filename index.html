@@ -586,13 +586,13 @@
     <div id="offline-istruzioni-cartella" hidden>
       <h3>Cartella scaricata</h3>
       <ol class="instructions">
-        <li>Apri <code>energia-telecomando.zip</code> dalla cartella <strong>Download</strong>: ne esce la cartella <strong>energia</strong> con la pagina, lo script e le istruzioni.</li>
+        <li>Apri <code>energia-telecomando.zip</code> dalla cartella <strong>Download</strong>: ne esce la cartella <strong>energia</strong>.</li>
         <li>Per giocare normalmente basta il <strong>doppio clic su <code>index.html</code></strong>.</li>
-        <li>Per comandare dall'iPad, apri il Terminale <strong>dentro quella cartella</strong> e lancia:<br><code>python3 telecomando.py</code> &nbsp;(su Windows: <code>py telecomando.py</code>)</li>
-        <li>Lo script stampa due indirizzi: apri quello <strong>Proiettore</strong> sul computer e quello <strong>iPad</strong> sul tablet, collegati alla <strong>stessa rete Wi-Fi</strong> (va bene l'hotspot del telefono).</li>
-        <li>Le carte scoperte dall'iPad compaiono sul proiettore e viceversa. <code>Ctrl+C</code> nel Terminale per fermare.</li>
+        <li>Per comandare dall'iPad, doppio clic su <code>avvia-telecomando.command</code> (Mac) o <code>avvia-telecomando.bat</code> (Windows). Si apre una finestra nera con due indirizzi: <strong>lasciala aperta</strong>.</li>
+        <li>Apri l'indirizzo <strong>Proiettore</strong> sul computer e quello <strong>iPad</strong> (quello coi numeri) in Safari sul tablet, collegati alla <strong>stessa rete Wi-Fi</strong> &mdash; va bene l'hotspot del telefono.</li>
+        <li>Le carte scoperte dall'iPad compaiono sul proiettore e viceversa. Per fermare: chiudi la finestra nera.</li>
       </ol>
-      <p class="download-note">Le stesse istruzioni sono nel file <code>ISTRUZIONI.txt</code> dentro la cartella. Serve Python 3, gi&agrave; presente su macOS e Linux; su Windows si installa dal Microsoft Store.</p>
+      <p class="download-note">Se preferisci il Terminale a mano: su <strong>Mac</strong> premi Cmd+spazio, scrivi <em>Terminale</em>, poi scrivi <code>cd</code> e uno spazio e trascina dentro la cartella <strong>energia</strong>, Invio, infine <code>python3 telecomando.py</code>. Su <strong>Windows</strong> apri la cartella, clicca nella barra dell'indirizzo, scrivi <code>cmd</code>, Invio, poi <code>py telecomando.py</code>. Tutti i passi, compreso cosa fare se qualcosa non va, sono in <code>ISTRUZIONI.txt</code> dentro la cartella.</p>
     </div>
 
     <div class="confirm-buttons">
@@ -1082,6 +1082,8 @@ function creaZip(elenco) {
 
   elenco.forEach(file => {
     const nome = codifica.encode(file.nome);
+    // su macOS il file da doppio clic deve avere il permesso di esecuzione
+    const modoUnix = file.eseguibile ? 0o100755 : 0o100644;
     const dati = file.dati;
     const crc = crc32(dati);
 
@@ -1101,7 +1103,7 @@ function creaZip(elenco) {
 
     const voce = new DataView(new ArrayBuffer(46));
     voce.setUint32(0, 0x02014b50, true);
-    voce.setUint16(4, 20, true);            // versione di chi ha scritto
+    voce.setUint16(4, (3 << 8) | 20, true); // scritto da: Unix (per i permessi)
     voce.setUint16(6, 20, true);
     voce.setUint16(8, 0x0800, true);
     voce.setUint16(10, 0, true);
@@ -1111,6 +1113,7 @@ function creaZip(elenco) {
     voce.setUint32(20, dati.length, true);
     voce.setUint32(24, dati.length, true);
     voce.setUint16(28, nome.length, true);
+    voce.setUint32(38, (modoUnix << 16) >>> 0, true);  // permessi del file
     voce.setUint32(42, posizione, true);    // offset dell'intestazione locale
     centrale.push(new Uint8Array(voce.buffer), nome);
 
@@ -1141,33 +1144,137 @@ const ISTRUZIONI = [
   "Fonte di Energia - fosforo: la festa della scienza",
   "==================================================",
   "",
-  "GIOCARE SUL COMPUTER",
-  "  Doppio clic su index.html: si apre nel browser e funziona senza internet.",
-  "  F11 (su Mac Ctrl+Cmd+F) per lo schermo intero.",
   "",
-  "COMANDARE DALL'IPAD (proiettore + telecomando, senza internet)",
-  "  1. Apri il Terminale dentro questa cartella e lancia:",
-  "       python3 telecomando.py          (su Windows: py telecomando.py)",
-  "     Se la porta e' occupata: python3 telecomando.py --porta 8001",
-  "  2. Lo script stampa due indirizzi.",
-  "     Apri quello \"Proiettore\" sul computer collegato al proiettore.",
-  "     Apri quello \"iPad\" sul tablet, collegato alla STESSA rete Wi-Fi",
-  "     (va bene anche l'hotspot del telefono: internet non serve).",
-  "  3. Le carte scoperte dall'iPad compaiono sul proiettore e viceversa,",
-  "     come pure \"Scopri tutte\" e \"Reset\". Possono collegarsi piu' schermi.",
-  "  4. Ctrl+C nel Terminale per fermare il server.",
+  "1. GIOCARE SUL COMPUTER",
   "",
-  "Serve Python 3: gia' presente su macOS e Linux, su Windows si installa",
-  "dal Microsoft Store o da python.org.",
+  "   Doppio clic su  index.html : si apre nel browser e funziona senza",
+  "   internet. F11 (su Mac Ctrl+Cmd+F) per lo schermo intero.",
+  "",
+  "",
+  "2. COMANDARE DALL'IPAD  (il proiettore mostra, l'iPad comanda)",
+  "",
+  "   Serve far partire il programma telecomando.py su questo computer.",
+  "   Il modo piu' semplice e' il doppio clic:",
+  "",
+  "   Su Mac:      doppio clic su  avvia-telecomando.command",
+  "                La prima volta il Mac potrebbe dire che il file proviene",
+  "                da uno sviluppatore non identificato: in quel caso fai",
+  "                tasto destro sul file > Apri > Apri.",
+  "",
+  "   Su Windows:  doppio clic su  avvia-telecomando.bat",
+  "                Se compare \"Windows ha protetto il PC\", clicca",
+  "                \"Ulteriori informazioni\" > \"Esegui comunque\".",
+  "",
+  "   Si apre una finestra nera (il Terminale) che stampa due indirizzi.",
+  "   LASCIALA APERTA: se la chiudi, il telecomando si spegne.",
+  "",
+  "   - l'indirizzo \"Proiettore\" va aperto sul computer collegato al",
+  "     proiettore (e' quello che dice localhost);",
+  "   - l'indirizzo \"iPad\" (quello coi numeri, tipo 192.168.1.23:8000) va",
+  "     scritto in Safari sull'iPad, per intero, http:// compreso.",
+  "",
+  "   iPad e computer devono stare sulla STESSA rete Wi-Fi: va bene anche",
+  "   l'hotspot del telefono, internet non serve. Sull'iPad conviene",
+  "   spegnere i dati cellulare.",
+  "",
+  "   Da quel momento le carte scoperte dall'iPad compaiono sul proiettore",
+  "   e viceversa. Per fermare tutto: chiudi la finestra nera.",
+  "",
+  "",
+  "3. SE PREFERISCI (O SE IL DOPPIO CLIC NON FUNZIONA): IL TERMINALE A MANO",
+  "",
+  "   Su Mac",
+  "   ------",
+  "   a) Premi Cmd + barra spaziatrice, scrivi  Terminale  e premi Invio.",
+  "      Si apre una finestra con del testo e un cursore che lampeggia.",
+  "   b) Scrivi  cd  seguito da UNO SPAZIO (non premere ancora Invio).",
+  "   c) Trascina la cartella  energia  dal Finder dentro la finestra del",
+  "      Terminale: il percorso si scrive da solo. Ora premi Invio.",
+  "   d) Scrivi  python3 telecomando.py  e premi Invio.",
+  "",
+  "   Su Windows",
+  "   ----------",
+  "   a) Apri la cartella  energia  in Esplora File.",
+  "   b) Clicca nella barra dell'indirizzo in alto (quella che mostra il",
+  "      percorso della cartella), cancella quello che c'e' scritto,",
+  "      scrivi  cmd  e premi Invio: si apre la finestra nera gia'",
+  "      posizionata dentro la cartella giusta.",
+  "   c) Scrivi  py telecomando.py  e premi Invio.",
+  "",
+  "   In entrambi i casi, per fermare il programma premi Ctrl + C nella",
+  "   finestra, oppure chiudila.",
+  "",
+  "",
+  "4. SE MANCA PYTHON",
+  "",
+  "   Su Mac e Linux c'e' gia'. Se il Mac chiede di installare gli",
+  "   strumenti per sviluppatori, accetta e aspetta la fine.",
+  "   Su Windows si installa gratis dal Microsoft Store: cerca Python 3,",
+  "   installa, poi riprova il doppio clic.",
+  "",
+  "",
+  "5. SE LA PORTA E' OCCUPATA",
+  "",
+  "   Se la finestra dice che non riesce ad aprire la porta 8000, lancia",
+  "   il programma dal Terminale (punto 3) scrivendo:",
+  "       python3 telecomando.py --porta 8001        (Mac)",
+  "       py telecomando.py --porta 8001             (Windows)",
+  "",
+  "",
+  "6. SE DALL'IPAD LA PAGINA NON SI APRE",
+  "",
+  "   Guarda la finestra nera: a ogni dispositivo che apre la pagina",
+  "   compare una riga  + collegato: ...",
+  "",
+  "   - non compare nulla  ->  la richiesta non arriva al computer:",
+  "     controlla di non aver aperto l'indirizzo \"Proiettore\" sull'iPad",
+  "     (localhost, sull'iPad, vuol dire l'iPad stesso), che siano sulla",
+  "     stessa rete, e che il firewall del computer non blocchi Python",
+  "     (su Mac: Impostazioni > Rete > Firewall). Sul Wi-Fi pubblico i",
+  "     dispositivi sono spesso isolati fra loro: usa l'hotspot del",
+  "     telefono e collegaci anche il computer;",
+  "   - il computer ha piu' indirizzi (VPN, piu' schede di rete): la",
+  "     finestra li elenca tutti, prova gli altri;",
+  "   - la riga compare ma la pagina resta bianca: e' un problema della",
+  "     pagina, non della rete.",
   ""
 ].join("\n");
+
+// Avviatore per macOS: doppio clic, senza toccare il Terminale
+const AVVIO_MAC = [
+  "#!/bin/bash",
+  "# Doppio clic su questo file per avviare il telecomando.",
+  "# Si apre il Terminale con gli indirizzi da usare: lascialo aperto.",
+  "cd \"$(dirname \"$0\")\" || exit 1",
+  "python3 telecomando.py",
+  ""
+].join("\n");
+
+// Avviatore per Windows (righe terminate CRLF, come vuole il Prompt)
+const AVVIO_WINDOWS = [
+  "@echo off",
+  "rem Doppio clic su questo file per avviare il telecomando.",
+  "cd /d \"%~dp0\"",
+  "where py >nul 2>nul",
+  "if %errorlevel%==0 (",
+  "    py telecomando.py",
+  ") else (",
+  "    python telecomando.py",
+  ")",
+  "echo.",
+  "pause",
+  ""
+].join("\r\n");
 
 function scaricaCartella() {
   const codifica = new TextEncoder();
   scaricaBlob(creaZip([
     { nome: "energia/index.html", dati: codifica.encode(costruisciFileAutonomo()) },
+    { nome: "energia/ISTRUZIONI.txt", dati: codifica.encode(ISTRUZIONI) },
     { nome: "energia/telecomando.py", dati: codifica.encode(testoTelecomando()) },
-    { nome: "energia/ISTRUZIONI.txt", dati: codifica.encode(ISTRUZIONI) }
+    { nome: "energia/avvia-telecomando.command", dati: codifica.encode(AVVIO_MAC),
+      eseguibile: true },
+    { nome: "energia/avvia-telecomando.bat", dati: codifica.encode(AVVIO_WINDOWS) }
   ]), "energia-telecomando.zip");
 }
 

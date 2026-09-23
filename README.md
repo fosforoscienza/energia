@@ -65,6 +65,14 @@ Wi-Fi (va bene l'hotspot del telefono) e senza alcuna connessione a internet:
 python3 telecomando.py          # oppure: python3 telecomando.py --porta 9000
 ```
 
+Chi non usa il Terminale trova nello zip scaricato dal sito due avviatori da
+doppio clic, `avvia-telecomando.command` (Mac) e `avvia-telecomando.bat`
+(Windows), e un `ISTRUZIONI.txt` che spiega tutto passo per passo: come
+aprire il Terminale, come entrare nella cartella (su Mac trascinandola nella
+finestra dopo `cd `, su Windows scrivendo `cmd` nella barra dell'indirizzo di
+Esplora File), cosa fare se manca Python e cosa guardare se dall'iPad la
+pagina non si apre.
+
 Lo script stampa due indirizzi: apri quello "Proiettore" sul computer e quello
 "iPad" sul tablet. Da quel momento le due pagine condividono lo stato: una
 carta scoperta dall'iPad compare sul proiettore (e viceversa), come pure
