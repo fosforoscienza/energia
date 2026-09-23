@@ -53,11 +53,31 @@ scheda del browser, i preferiti e la copia offline. La sorgente a 512 px è
 `icona.png`: per sostituirla basta rigenerare le quattro misure e rimpiazzare
 i `<link rel="icon">` nel `<head>` di `index.html`.
 
+## Telecomando dall'iPad (senza internet)
+
+Per proiettare dal computer e scoprire le carte dall'iPad, sulla stessa rete
+Wi-Fi (va bene l'hotspot del telefono) e senza alcuna connessione a internet:
+
+```bash
+python3 telecomando.py          # oppure: python3 telecomando.py --porta 9000
+```
+
+Lo script stampa due indirizzi: apri quello "Proiettore" sul computer e quello
+"iPad" sul tablet. Da quel momento le due pagine condividono lo stato: una
+carta scoperta dall'iPad compare sul proiettore (e viceversa), come pure
+"Scopri tutte" e "Reset". Possono collegarsi anche più dispositivi, e chi
+arriva dopo si allinea da solo.
+
+Serve solo Python 3, nessuna libreria da installare. Lo stato viaggia con un
+long-poll su `/api/stato`, quindi le carte compaiono sull'altro schermo in un
+paio di decimi di secondo. Ctrl+C per fermare il server.
+
 ## Struttura
 
 | File | Contenuto |
 | --- | --- |
 | `index.html` | Il gioco completo: markup, CSS, JavaScript, immagini e font incorporati |
 | `genera_energia.py` | Script storico di ritaglio delle celle dalla griglia originale (non più allineato a `index.html`) |
+| `telecomando.py` | Server locale che sincronizza proiettore e iPad senza internet |
 | `icona.png` | Sorgente a 512 px dell'icona incorporata nella pagina |
 | `vercel.json` | Header di sicurezza del deploy (CSP, X-Frame-Options, ecc.) |

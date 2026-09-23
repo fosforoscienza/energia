@@ -449,6 +449,24 @@
     .side-label { display: flex; }
   }
 
+  .barra-sync {
+    margin-top: calc(var(--cell) * 0.05);
+    font-size: calc(var(--cell) * 0.075);
+    font-weight: 400;
+    color: #5d7f96;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.8s;
+  }
+  .barra-sync strong {
+    font-weight: 600;
+    color: #a8cbe0;
+  }
+  .barra-sync.attenuata {
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .fosforo-credit {
     margin-top: calc(var(--cell) * 0.07);
     font-size: calc(var(--cell) * 0.075);
@@ -485,6 +503,7 @@
     <button id="btn-download" class="btn-ghost" type="button">Scarica per uso offline</button>
   </div>
 
+  <p class="barra-sync" id="barra-sync" hidden></p>
   <p class="fosforo-credit">fosforo: la festa della scienza</p>
 </div>
 
@@ -706,6 +725,14 @@ for (let r = 0; r < 5; r++) {
   }
 }
 
+function etichettaCella(cell, aperta) {
+  const r = parseInt(cell.dataset.row);
+  const c = parseInt(cell.dataset.col);
+  const desc = CELL_DESCS[r + "-" + c] || "";
+  cell.setAttribute("aria-label",
+    "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc + (aperta ? "" : " (coperta)"));
+}
+
 function toggleCell(cell, key, desc) {
   const r = parseInt(cell.dataset.row);
   const c = parseInt(cell.dataset.col);
@@ -725,6 +752,7 @@ function toggleCell(cell, key, desc) {
     counter.textContent = revealed.size;
     cell.setAttribute("aria-label", "Da " + ENERGY[c] + " a " + ENERGY[r] + ": " + desc);
   }
+  segnalaCambiamento();
 }
 
 function revealAll() {
@@ -744,6 +772,7 @@ function revealAll() {
 
 function resetAll() {
   revealed.clear();
+  segnalaCambiamento();
   counter.textContent = "0";
   document.querySelectorAll(".cell.flipped").forEach(cell => {
     cell.classList.remove("flipped");
@@ -783,6 +812,94 @@ document.getElementById("btn-reset").addEventListener("click", () => {
   askConfirm("Vuoi rimettere tutti i punti interrogativi?", resetAll);
 });
 
+// === Sincronizzazione fra schermi (proiettore + telecomando) ===
+// Lo stato condiviso e' l'elenco delle carte scoperte. Chi cambia qualcosa lo
+// trasmette, chi riceve allinea la propria griglia senza ritrasmettere.
+let canaleSync = null;        // funzione che invia lo stato, se collegati
+let applicazioneInCorso = false;
+let invioProgrammato = null;
+
+function chiaviScoperte() {
+  return Array.from(revealed).sort();
+}
+
+function segnalaCambiamento() {
+  if (!canaleSync || applicazioneInCorso) return;
+  // un solo invio per raffica di cambiamenti (es. "Scopri tutte")
+  if (invioProgrammato) clearTimeout(invioProgrammato);
+  invioProgrammato = setTimeout(() => {
+    invioProgrammato = null;
+    canaleSync(chiaviScoperte());
+  }, 60);
+}
+
+function applicaStato(chiavi) {
+  const attese = new Set(chiavi || []);
+  let scoperteNuove = 0;
+  applicazioneInCorso = true;
+  document.querySelectorAll(".cell:not(.diagonal)").forEach(cell => {
+    const key = cell.dataset.row + "-" + cell.dataset.col;
+    const deveEsserAperta = attese.has(key);
+    if (deveEsserAperta === cell.classList.contains("flipped")) return;
+    cell.classList.toggle("flipped", deveEsserAperta);
+    if (deveEsserAperta) {
+      revealed.add(key);
+      scoperteNuove++;
+    } else {
+      revealed.delete(key);
+    }
+    etichettaCella(cell, deveEsserAperta);
+  });
+  counter.textContent = revealed.size;
+  applicazioneInCorso = false;
+  // una sola campanellina anche se arrivano piu' carte insieme
+  if (scoperteNuove) suonoCampanella(0.13);
+}
+
+const barraSync = document.getElementById("barra-sync");
+function mostraBarraSync(html, autoNascondi) {
+  barraSync.innerHTML = html;
+  barraSync.hidden = false;
+  barraSync.classList.remove("attenuata");
+  scheduleFit();
+  if (autoNascondi) setTimeout(() => barraSync.classList.add("attenuata"), autoNascondi);
+}
+barraSync.addEventListener("click", () => barraSync.classList.add("attenuata"));
+
+// Modalita' locale: la pagina e' servita da telecomando.py sulla rete di casa
+// o dell'hotspot. Lo stato viaggia con un long-poll, senza internet.
+function attivaSincronizzazioneLocale(config) {
+  const mioId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let versione = 0;
+  let ultimoInviato = null;
+
+  canaleSync = function (chiavi) {
+    ultimoInviato = JSON.stringify(chiavi);
+    fetch("api/stato", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ carte: chiavi, da: mioId })
+    }).then(r => r.json()).then(d => { versione = Math.max(versione, d.v); }).catch(() => {});
+  };
+
+  async function ascolta() {
+    for (;;) {
+      try {
+        const r = await fetch("api/stato?v=" + versione, { cache: "no-store" });
+        const d = await r.json();
+        versione = d.v;
+        if (d.da !== mioId && JSON.stringify(d.carte) !== ultimoInviato) applicaStato(d.carte);
+      } catch (e) {
+        await new Promise(res => setTimeout(res, 1500));
+      }
+    }
+  }
+  ascolta();
+
+  const indirizzo = (config && config.url) || location.origin;
+  mostraBarraSync("Telecomando: apri <strong>" + indirizzo + "</strong> sull'iPad", 90000);
+}
+
 // === Download per uso offline ===
 // Ricostruisce una copia "pulita" della pagina (senza le celle generate dallo
 // script e senza lo stato di gioco) e la salva come singolo file HTML.
@@ -802,6 +919,14 @@ function costruisciFileAutonomo() {
   // Azzera lo stato: contatore, overlay aperti, stili calcolati dal fit
   const cnt = clone.querySelector("#count");
   if (cnt) cnt.textContent = "0";
+  const iniettato = clone.querySelector("script[data-modo-locale]");
+  if (iniettato) iniettato.remove();
+  const barra = clone.querySelector("#barra-sync");
+  if (barra) {
+    barra.hidden = true;
+    barra.textContent = "";
+    barra.classList.remove("attenuata");
+  }
   const btnA = clone.querySelector("#btn-audio");
   if (btnA) {
     btnA.textContent = "Suono ON";
@@ -907,6 +1032,9 @@ window.addEventListener("orientationchange", scheduleFit);
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(scheduleFit);
 }
+
+// Modalita' locale: attivata solo quando la pagina e' servita da telecomando.py
+if (window.__MODO_LOCALE__) attivaSincronizzazioneLocale(window.__MODO_LOCALE__);
 })();
 </script>
 </body>
