@@ -366,6 +366,56 @@
     font-weight: 500;
     border-radius: 8px;
   }
+  .btn-ghost {
+    background: transparent;
+    border-color: #24405a;
+    color: #7f93a6;
+  }
+  .btn-ghost:hover {
+    background: #16293c;
+    border-color: #35597a;
+    color: #c8d8e6;
+  }
+
+  .complete-msg .inner.wide {
+    max-width: 560px;
+  }
+  .complete-msg h3 {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f0d8a0;
+    margin-bottom: 14px;
+  }
+  .instructions {
+    text-align: left;
+    color: #c8d4e0;
+    font-size: 0.92rem;
+    font-weight: 300;
+    line-height: 1.6;
+    margin: 0;
+    padding-left: 20px;
+  }
+  .instructions li {
+    margin-bottom: 9px;
+  }
+  .instructions strong {
+    font-weight: 600;
+    color: #e8dcc8;
+  }
+  .instructions code {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 500;
+    color: #f0d8a0;
+  }
+  .complete-msg .download-note {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    font-weight: 300;
+    color: #7f8fa0;
+    text-align: left;
+  }
+
   .btn-danger {
     background: #4a2020;
     border-color: #703030;
@@ -425,9 +475,29 @@
     <div class="counter"><strong id="count">0</strong> / 20</div>
     <button id="btn-reveal" type="button">Scopri tutte</button>
     <button id="btn-reset" type="button">Reset</button>
+    <button id="btn-download" class="btn-ghost" type="button">Scarica per uso offline</button>
   </div>
 
   <p class="fosforo-credit">fosforo: la festa della scienza</p>
+</div>
+
+<!-- Istruzioni uso offline -->
+<div class="complete-msg" id="offline-overlay">
+  <div class="inner wide">
+    <h3>Download avviato</h3>
+    <ol class="instructions">
+      <li>Il file <code>fonte-di-energia-offline.html</code> &egrave; nella cartella <strong>Download</strong>: contiene gi&agrave; immagini e caratteri, quindi funziona <strong>senza internet</strong>.</li>
+      <li>Fai <strong>doppio clic</strong> sul file: si apre nel browser e il gioco parte subito.</li>
+      <li>Se si apre con il programma sbagliato: <strong>tasto destro &rarr; Apri con &rarr; Chrome</strong> (o Edge, Firefox, Safari).</li>
+      <li>Premi <code>F11</code> (su Mac <code>Ctrl+Cmd+F</code>) per il <strong>schermo intero</strong>.</li>
+      <li>Puoi copiare il file su una <strong>chiavetta USB</strong> o inviarlo via mail: &egrave; un unico file, si porta ovunque.</li>
+    </ol>
+    <p class="download-note">Se il download non parte, usa il menu del browser: File &rarr; Salva pagina con nome &rarr; <em>Pagina web, solo HTML</em>.</p>
+    <div class="confirm-buttons">
+      <button id="offline-again" type="button">Scarica di nuovo</button>
+      <button id="offline-close" type="button">Chiudi</button>
+    </div>
+  </div>
 </div>
 
 <!-- Conferma overlay -->
@@ -635,6 +705,63 @@ document.getElementById("btn-reveal").addEventListener("click", () => {
 document.getElementById("btn-reset").addEventListener("click", () => {
   if (revealed.size === 0) return;
   askConfirm("Vuoi rimettere tutti i punti interrogativi?", resetAll);
+});
+
+// === Download per uso offline ===
+// Ricostruisce una copia "pulita" della pagina (senza le celle generate dallo
+// script e senza lo stato di gioco) e la salva come singolo file HTML.
+const INTESTAZIONI_GRIGLIA = 6; // angolo + 5 intestazioni di colonna
+
+function costruisciFileAutonomo() {
+  const clone = document.documentElement.cloneNode(true);
+
+  // Rimuove righe e celle generate a runtime (verranno ricreate all'apertura)
+  const wrapper = clone.querySelector(".grid-wrapper");
+  if (wrapper) {
+    while (wrapper.children.length > INTESTAZIONI_GRIGLIA) {
+      wrapper.removeChild(wrapper.lastElementChild);
+    }
+  }
+
+  // Azzera lo stato: contatore, overlay aperti, stili calcolati dal fit
+  const cnt = clone.querySelector("#count");
+  if (cnt) cnt.textContent = "0";
+  clone.querySelectorAll(".complete-msg").forEach(o => o.classList.remove("show"));
+  const ct = clone.querySelector("#confirm-text");
+  if (ct) ct.textContent = "";
+  clone.removeAttribute("style");
+  ["#main-title", "#side-label"].forEach(sel => {
+    const el = clone.querySelector(sel);
+    if (el) el.removeAttribute("style");
+  });
+
+  const intestazione = "<!--\n  Fonte di Energia - fosforo: la festa della scienza\n" +
+    "  File autonomo: immagini e caratteri sono incorporati, funziona senza internet.\n" +
+    "  Doppio clic per aprirlo nel browser (Chrome, Edge, Firefox o Safari).\n-->\n";
+
+  return "<!DOCTYPE html>\n" + intestazione + clone.outerHTML;
+}
+
+function scaricaOffline() {
+  const blob = new Blob([costruisciFileAutonomo()], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fonte-di-energia-offline.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+const offlineOverlay = document.getElementById("offline-overlay");
+document.getElementById("btn-download").addEventListener("click", () => {
+  scaricaOffline();
+  offlineOverlay.classList.add("show");
+});
+document.getElementById("offline-again").addEventListener("click", scaricaOffline);
+document.getElementById("offline-close").addEventListener("click", () => {
+  offlineOverlay.classList.remove("show");
 });
 
 // === Allineamento etichette ===
