@@ -212,6 +212,13 @@
     overflow: hidden;
   }
 
+  /* iPad e browser vecchi senza aspect-ratio: altezza calcolata a mano */
+  @supports not (aspect-ratio: 191 / 135) {
+    .cell {
+      height: calc(var(--cell) * 135 / 191);
+    }
+  }
+
   .cell.diagonal {
     background: #0e2a3e;
     cursor: default;
@@ -232,7 +239,10 @@
 
   .cell-front, .cell-back {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     backface-visibility: hidden;
     border-radius: calc(var(--cell) * 0.04);
     overflow: hidden;
@@ -331,7 +341,10 @@
   /* Overlay conferma */
   .complete-msg {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
     align-items: center;
     justify-content: center;

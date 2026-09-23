@@ -84,6 +84,9 @@ class StatoCondiviso:
 
 stato = StatoCondiviso()
 
+COLLEGATI = set()
+COLLEGATI_LOCK = threading.Lock()
+
 
 def pagina_con_modalita_locale(pagina, indirizzo):
     """La pagina del gioco con il flag che accende la sincronizzazione.
@@ -109,6 +112,20 @@ class Gestore(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass  # niente rumore nel terminale della regia
 
+    def segnala_collegamento(self):
+        """Stampa una riga la prima volta che un dispositivo apre la pagina.
+
+        E' la spia che serve in regia: se apri l'indirizzo sull'iPad e qui non
+        compare nulla, la richiesta non sta nemmeno arrivando al computer
+        (rete diversa, oppure firewall).
+        """
+        ip = self.client_address[0]
+        with COLLEGATI_LOCK:
+            nuovo = ip not in COLLEGATI
+            COLLEGATI.add(ip)
+        if nuovo:
+            print(f"  + collegato: {ip}")
+
     def _rispondi(self, corpo, tipo="application/json; charset=utf-8", codice=200):
         self.send_response(codice)
         self.send_header("Content-Type", tipo)
@@ -128,6 +145,7 @@ class Gestore(BaseHTTPRequestHandler):
         percorso = urlparse(self.path)
 
         if percorso.path in ("/", "/index.html"):
+            self.segnala_collegamento()
             self._rispondi(
                 pagina_con_modalita_locale(self.server.pagina, self.server.indirizzo_ipad),
                 tipo="text/html; charset=utf-8")
@@ -170,16 +188,51 @@ class Gestore(BaseHTTPRequestHandler):
         self._json(versione, carte, da)
 
 
-def ip_locale():
-    """Indirizzo della macchina sulla rete locale (senza contattare nessuno)."""
+def ip_principale():
+    """Indirizzo usato per uscire verso la rete (senza contattare nessuno)."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(("10.255.255.255", 1))  # nessun pacchetto esce davvero
         return s.getsockname()[0]
     except OSError:
-        return "127.0.0.1"
+        return ""
     finally:
         s.close()
+
+
+def indirizzi_locali():
+    """Tutti gli IPv4 della macchina, il piu' probabile per primo.
+
+    Con VPN, Docker o piu' schede di rete attive il computer ha piu'
+    indirizzi: elencarli tutti evita di far provare all'iPad quello sbagliato.
+    """
+    trovati = []
+
+    def aggiungi(ip):
+        if ip and ip not in trovati and not ip.startswith("127."):
+            trovati.append(ip)
+
+    aggiungi(ip_principale())
+    try:
+        for dati in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            aggiungi(dati[4][0])
+    except (socket.gaierror, OSError):
+        pass
+
+    # le reti di casa/hotspot (192.168.x, 10.x, 172.16-31.x) prima delle altre
+    def priorita(ip):
+        if ip.startswith("192.168."):
+            return 0
+        if ip.startswith("10."):
+            return 1
+        if ip.startswith("172."):
+            return 2
+        if ip.startswith("169.254."):
+            return 4  # indirizzo di ripiego: quasi sempre inutile
+        return 3
+
+    trovati.sort(key=priorita)
+    return trovati or ["127.0.0.1"]
 
 
 def main():
@@ -190,7 +243,8 @@ def main():
     argomenti = parser.parse_args()
 
     pagina = trova_pagina(argomenti.pagina)
-    indirizzo_ipad = f"http://{ip_locale()}:{argomenti.porta}"
+    indirizzi = indirizzi_locali()
+    indirizzo_ipad = f"http://{indirizzi[0]}:{argomenti.porta}"
     try:
         server = ThreadingHTTPServer(("0.0.0.0", argomenti.porta), Gestore)
     except OSError as errore:
@@ -204,13 +258,29 @@ def main():
 
     print()
     print("  Fonte di Energia — telecomando locale (niente internet)")
-    print("  " + "-" * 52)
+    print("  " + "-" * 56)
     print(f"  Proiettore (questo computer):  http://localhost:{argomenti.porta}")
     print(f"  iPad (stessa rete Wi-Fi):      {indirizzo_ipad}")
+    if len(indirizzi) > 1:
+        print()
+        print("  Se sull'iPad non si apre, prova gli altri indirizzi di questo")
+        print("  computer (ne ha piu' di uno: VPN, Docker o piu' schede di rete):")
+        for altro in indirizzi[1:]:
+            print(f"      http://{altro}:{argomenti.porta}")
     print()
     print(f"  Pagina servita: {pagina.name}")
     print()
-    print("  Le carte scoperte da un dispositivo compaiono su tutti gli altri.")
+    print("  Qui sotto compare una riga a ogni dispositivo che apre la pagina.")
+    print("  Se apri l'indirizzo sull'iPad e non compare nulla:")
+    print("    - iPad e computer devono essere sulla STESSA rete Wi-Fi")
+    print("      (sull'iPad disattiva i dati cellulare per esserne sicuro);")
+    print("    - scrivi l'indirizzo per intero, con http:// e i :"
+          f"{argomenti.porta} finali;")
+    print("    - se il computer chiede di autorizzare Python nel firewall,")
+    print("      rispondi Consenti (macOS: Impostazioni > Rete > Firewall);")
+    print("    - sul Wi-Fi pubblico i dispositivi sono spesso isolati fra loro:")
+    print("      usa l'hotspot del telefono e collegaci anche il computer.")
+    print()
     print("  Ctrl+C per fermare.")
     print()
 

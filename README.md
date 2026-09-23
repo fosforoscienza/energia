@@ -81,6 +81,24 @@ Lo stato viaggia con un long-poll su `/api/stato`, quindi le carte compaiono
 sull'altro schermo in un paio di decimi di secondo. Ctrl+C per fermare il
 server; se la porta è occupata, usa `--porta 8001`.
 
+### Se dall'iPad la pagina non si apre
+
+Lo script stampa una riga `+ collegato: <indirizzo>` ogni volta che un
+dispositivo apre la pagina: è la spia da guardare in regia.
+
+- **Nel terminale non compare nulla** → la richiesta non arriva al computer.
+  Controlla che sull'iPad tu abbia aperto l'indirizzo *iPad* e non quello
+  *Proiettore* (`localhost` sull'iPad significa "l'iPad stesso"); che i due
+  dispositivi siano sulla stessa rete Wi-Fi, con i dati cellulare spenti; che
+  il firewall del computer non stia bloccando Python (su macOS:
+  Impostazioni → Rete → Firewall). Sulle reti pubbliche i dispositivi sono
+  spesso isolati fra loro: in quel caso usa l'hotspot del telefono e collegaci
+  anche il computer.
+- **Il computer ha più indirizzi** (VPN, Docker, più schede di rete): lo script
+  li elenca tutti, prova gli altri.
+- **La riga compare ma la pagina resta bianca** → è un problema della pagina,
+  non della rete: segnalalo con il modello di iPad e la versione di iPadOS.
+
 ## Struttura
 
 | File | Contenuto |
