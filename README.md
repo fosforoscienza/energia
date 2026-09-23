@@ -35,6 +35,16 @@ Poi:
 La tabella si ridimensiona da sola per riempire lo schermo, da monitor grandi a
 tablet e telefoni.
 
+## Suoni
+
+Ogni carta scoperta produce il fruscio della carta girata e una campanellina;
+richiudendola si sente solo il fruscio. Con "Scopri tutte" il fruscio è più
+tenue e la campanellina suona una volta sola alla fine.
+
+I suoni sono **sintetizzati al volo** con la Web Audio API: non ci sono file
+audio da scaricare, quindi funzionano anche offline. Il pulsante
+**"Suono ON / OFF"** li disattiva e la scelta viene ricordata sul dispositivo.
+
 ## Struttura
 
 | File | Contenuto |
