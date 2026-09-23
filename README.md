@@ -19,8 +19,11 @@ né un server web.
 Due modi per averlo sul proprio computer:
 
 1. **Dal sito** — apri <https://energia-nine.vercel.app/> e premi il pulsante
-   **"Scarica per uso offline"**: salva `fonte-di-energia-offline.html` nella
-   cartella Download e mostra le istruzioni.
+   **"Scarica per uso offline"**, che propone due possibilità:
+   - *Solo la pagina*: salva `fonte-di-energia-offline.html`, un file unico;
+   - *Cartella completa*: salva `energia-telecomando.zip`, che contiene la
+     pagina come `index.html`, lo script `telecomando.py` e `ISTRUZIONI.txt`.
+     Lo zip viene costruito nel browser, senza scaricare nulla dalla rete.
 2. **Da questo repository** — scarica `index.html` (bottone *Download raw file*
    su GitHub) oppure clona il repo.
 

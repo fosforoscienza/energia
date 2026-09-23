@@ -409,11 +409,45 @@
     font-weight: 600;
     color: #e8dcc8;
   }
-  .instructions code {
+  .complete-msg code {
     font-family: 'Poppins', system-ui, sans-serif;
     font-weight: 500;
     color: #f0d8a0;
   }
+  .opzioni-download {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .opzione {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #16293c;
+    border: 1px solid #2a4a60;
+  }
+  .opzione:hover {
+    background: #1d3550;
+    border-color: #3a6484;
+  }
+  .opzione .titolo-opzione {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #f0d8a0;
+    margin-bottom: 3px;
+  }
+  .opzione .dettaglio-opzione {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 300;
+    line-height: 1.45;
+    color: #a8bccd;
+  }
+
   .complete-msg .download-note {
     margin-top: 16px;
     font-size: 0.8rem;
@@ -510,17 +544,46 @@
 <!-- Istruzioni uso offline -->
 <div class="complete-msg" id="offline-overlay">
   <div class="inner wide">
-    <h3>Download avviato</h3>
-    <ol class="instructions">
-      <li>Il file <code>fonte-di-energia-offline.html</code> &egrave; nella cartella <strong>Download</strong>: contiene gi&agrave; immagini e caratteri, quindi funziona <strong>senza internet</strong>.</li>
-      <li>Fai <strong>doppio clic</strong> sul file: si apre nel browser e il gioco parte subito.</li>
-      <li>Se si apre con il programma sbagliato: <strong>tasto destro &rarr; Apri con &rarr; Chrome</strong> (o Edge, Firefox, Safari).</li>
-      <li>Premi <code>F11</code> (su Mac <code>Ctrl+Cmd+F</code>) per il <strong>schermo intero</strong>.</li>
-      <li>Puoi copiare il file su una <strong>chiavetta USB</strong> o inviarlo via mail: &egrave; un unico file, si porta ovunque.</li>
-    </ol>
-    <p class="download-note">Se il download non parte, usa il menu del browser: File &rarr; Salva pagina con nome &rarr; <em>Pagina web, solo HTML</em>.</p>
+    <div id="offline-scelta">
+      <h3>Usare il gioco sul tuo computer</h3>
+      <div class="opzioni-download">
+        <button class="opzione" id="scarica-pagina" type="button">
+          <span class="titolo-opzione">Solo la pagina &middot; 1 file</span>
+          <span class="dettaglio-opzione">Un unico file HTML da aprire con doppio clic: immagini, caratteri e suoni sono gi&agrave; dentro, funziona senza internet.</span>
+        </button>
+        <button class="opzione" id="scarica-cartella" type="button">
+          <span class="titolo-opzione">Cartella completa &middot; con telecomando iPad</span>
+          <span class="dettaglio-opzione">Uno zip con la pagina, lo script <code>telecomando.py</code> e le istruzioni: serve per proiettare dal computer e scoprire le carte dall'iPad.</span>
+        </button>
+      </div>
+      <p class="download-note">Se il download non parte, usa il menu del browser: File &rarr; Salva pagina con nome &rarr; <em>Pagina web, solo HTML</em>.</p>
+    </div>
+
+    <div id="offline-istruzioni-pagina" hidden>
+      <h3>Download avviato</h3>
+      <ol class="instructions">
+        <li>Il file <code>fonte-di-energia-offline.html</code> &egrave; nella cartella <strong>Download</strong>: contiene gi&agrave; tutto, quindi funziona <strong>senza internet</strong>.</li>
+        <li>Fai <strong>doppio clic</strong> sul file: si apre nel browser e il gioco parte subito.</li>
+        <li>Se si apre con il programma sbagliato: <strong>tasto destro &rarr; Apri con &rarr; Chrome</strong> (o Edge, Firefox, Safari).</li>
+        <li>Premi <code>F11</code> (su Mac <code>Ctrl+Cmd+F</code>) per il <strong>schermo intero</strong>.</li>
+        <li>Puoi copiare il file su una <strong>chiavetta USB</strong> o inviarlo via mail: &egrave; un unico file, si porta ovunque.</li>
+      </ol>
+    </div>
+
+    <div id="offline-istruzioni-cartella" hidden>
+      <h3>Cartella scaricata</h3>
+      <ol class="instructions">
+        <li>Apri <code>energia-telecomando.zip</code> dalla cartella <strong>Download</strong>: ne esce la cartella <strong>energia</strong> con la pagina, lo script e le istruzioni.</li>
+        <li>Per giocare normalmente basta il <strong>doppio clic su <code>index.html</code></strong>.</li>
+        <li>Per comandare dall'iPad, apri il Terminale <strong>dentro quella cartella</strong> e lancia:<br><code>python3 telecomando.py</code> &nbsp;(su Windows: <code>py telecomando.py</code>)</li>
+        <li>Lo script stampa due indirizzi: apri quello <strong>Proiettore</strong> sul computer e quello <strong>iPad</strong> sul tablet, collegati alla <strong>stessa rete Wi-Fi</strong> (va bene l'hotspot del telefono).</li>
+        <li>Le carte scoperte dall'iPad compaiono sul proiettore e viceversa. <code>Ctrl+C</code> nel Terminale per fermare.</li>
+      </ol>
+      <p class="download-note">Le stesse istruzioni sono nel file <code>ISTRUZIONI.txt</code> dentro la cartella. Serve Python 3, gi&agrave; presente su macOS e Linux; su Windows si installa dal Microsoft Store.</p>
+    </div>
+
     <div class="confirm-buttons">
-      <button id="offline-again" type="button">Scarica di nuovo</button>
+      <button id="offline-indietro" type="button" hidden>Altre opzioni</button>
       <button id="offline-close" type="button">Chiudi</button>
     </div>
   </div>
@@ -536,6 +599,8 @@
     </div>
   </div>
 </div>
+
+<script type="text/plain" id="script-telecomando">IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwoiIiIKVGVsZWNvbWFuZG8gcGVyICJGb250ZSBkaSBFbmVyZ2lhIiDigJQgdmVyc2lvbmUgc2VuemEgaW50ZXJuZXQuCgpMYW5jaWEgdW4gcGljY29sbyBzZXJ2ZXIgc3VsIGNvbXB1dGVyIGRlbGxhIHJlZ2lhOiBsYSBzdGVzc2EgcGFnaW5hIGFwZXJ0YSBzdWwKY29tcHV0ZXIgKHByb2lldHRvcmUpIGUgc3VsbCdpUGFkIHJlc3RhIHNpbmNyb25penphdGEsIHF1aW5kaSBsZSBjYXJ0ZSBzY29wZXJ0ZQpkYWwgcGFsY28gY29tcGFpb25vIHN1bCBwcm9pZXR0b3JlIGUgdmljZXZlcnNhLgoKVXNvOgogICAgcHl0aG9uMyB0ZWxlY29tYW5kby5weSAgICAgICAgICAgICMgcG9ydGEgODAwMAogICAgcHl0aG9uMyB0ZWxlY29tYW5kby5weSAtLXBvcnRhIDkwMDAKClBvaToKICAtIHN1bCBjb21wdXRlciBhcHJpIGwnaW5kaXJpenpvICJQcm9pZXR0b3JlIiBlIHZhaSBhIHNjaGVybW8gaW50ZXJvIChGMTEpOwogIC0gc3VsbCdpUGFkLCBjb2xsZWdhdG8gYWxsYSBTVEVTU0EgcmV0ZSBXaS1GaSAodmEgYmVuZSBhbmNoZSBsJ2hvdHNwb3QgZGVsCiAgICB0ZWxlZm9ubyksIGFwcmkgbCdpbmRpcml6em8gImlQYWQiLgoKU2VydmUgc29sbyBQeXRob24gMzogbmVzc3VuYSBsaWJyZXJpYSBkYSBpbnN0YWxsYXJlLCBuZXNzdW5hIGNvbm5lc3Npb25lIGEKaW50ZXJuZXQuIEZlcm1hbG8gY29uIEN0cmwrQy4KIiIiCgppbXBvcnQgYXJncGFyc2UKaW1wb3J0IGpzb24KaW1wb3J0IHNvY2tldAppbXBvcnQgdGhyZWFkaW5nCmZyb20gaHR0cC5zZXJ2ZXIgaW1wb3J0IEJhc2VIVFRQUmVxdWVzdEhhbmRsZXIsIFRocmVhZGluZ0hUVFBTZXJ2ZXIKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmZyb20gdXJsbGliLnBhcnNlIGltcG9ydCB1cmxwYXJzZSwgcGFyc2VfcXMKCkNBUlRFTExBID0gUGF0aChfX2ZpbGVfXykucmVzb2x2ZSgpLnBhcmVudAojIG5vbWkgYWNjZXR0YXRpOiBxdWVsbG8gZGVsIHJlcG9zaXRvcnkgZSBxdWVsbG8gZGVsIGZpbGUgc2NhcmljYXRvIGRhbCBzaXRvCk5PTUlfUEFHSU5BID0gKCJpbmRleC5odG1sIiwgImZvbnRlLWRpLWVuZXJnaWEtb2ZmbGluZS5odG1sIikKQVRURVNBX0xPTkdQT0xMID0gMjUgICAgICAjIHNlY29uZGkgZGkgYXR0ZXNhIHByaW1hIGRpIHJpc3BvbmRlcmUgIm5lc3N1bmEgbm92aXRhJyIKTElNSVRFX0NPUlBPID0gNjQgKiAxMDI0ICAjIHVuYSByaWNoaWVzdGEgZGkgc3RhdG8gbm9uIHN1cGVyYSBxdWFsY2hlIGNlbnRpbmFpbyBkaSBieXRlCgoKZGVmIHRyb3ZhX3BhZ2luYShpbmRpY2F0YT1Ob25lKToKICAgICIiIklsIGZpbGUgZGVsIGdpb2NvIGRhIHNlcnZpcmU6IHF1ZWxsbyBpbmRpY2F0bywgbyBpbCBwcmltbyBub21lIG5vdG8uIiIiCiAgICBpZiBpbmRpY2F0YToKICAgICAgICBwZXJjb3JzbyA9IFBhdGgoaW5kaWNhdGEpLmV4cGFuZHVzZXIoKQogICAgICAgIGlmIG5vdCBwZXJjb3Jzby5pc19hYnNvbHV0ZSgpOgogICAgICAgICAgICBwZXJjb3JzbyA9IENBUlRFTExBIC8gcGVyY29yc28KICAgICAgICBpZiBub3QgcGVyY29yc28uZXhpc3RzKCk6CiAgICAgICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZiJOb24gdHJvdm8ge3BlcmNvcnNvfS4iKQogICAgICAgIHJldHVybiBwZXJjb3JzbwogICAgZm9yIG5vbWUgaW4gTk9NSV9QQUdJTkE6CiAgICAgICAgaWYgKENBUlRFTExBIC8gbm9tZSkuZXhpc3RzKCk6CiAgICAgICAgICAgIHJldHVybiBDQVJURUxMQSAvIG5vbWUKICAgIHJhaXNlIFN5c3RlbUV4aXQoCiAgICAgICAgIk5vbiB0cm92byBsYSBwYWdpbmEgZGVsIGdpb2NvLlxuIgogICAgICAgIGYiTWV0dGkge05PTUlfUEFHSU5BWzBdfSAobyBpbCBmaWxlIHNjYXJpY2F0byBkYWwgc2l0bykgbmVsbGEgY2FydGVsbGEgIgogICAgICAgIGYie0NBUlRFTExBfSwgb3BwdXJlIGluZGljYWxvIGNvbiAtLXBhZ2luYS4iCiAgICApCgoKY2xhc3MgU3RhdG9Db25kaXZpc286CiAgICAiIiJFbGVuY28gZGVsbGUgY2FydGUgc2NvcGVydGUsIGNvbiBudW1lcm8gZGkgdmVyc2lvbmUgZSBhdHRlc2EgYmxvY2NhbnRlLiIiIgoKICAgIGRlZiBfX2luaXRfXyhzZWxmKToKICAgICAgICBzZWxmLl9jb25kaXppb25lID0gdGhyZWFkaW5nLkNvbmRpdGlvbigpCiAgICAgICAgc2VsZi5fY2FydGUgPSBbXQogICAgICAgIHNlbGYuX2RhID0gIiIKICAgICAgICBzZWxmLl92ZXJzaW9uZSA9IDEKCiAgICBkZWYgbGVnZ2koc2VsZik6CiAgICAgICAgd2l0aCBzZWxmLl9jb25kaXppb25lOgogICAgICAgICAgICByZXR1cm4gc2VsZi5fdmVyc2lvbmUsIGxpc3Qoc2VsZi5fY2FydGUpLCBzZWxmLl9kYQoKICAgIGRlZiBzY3Jpdmkoc2VsZiwgY2FydGUsIGRhKToKICAgICAgICB3aXRoIHNlbGYuX2NvbmRpemlvbmU6CiAgICAgICAgICAgIHNlbGYuX2NhcnRlID0gY2FydGUKICAgICAgICAgICAgc2VsZi5fZGEgPSBkYQogICAgICAgICAgICBzZWxmLl92ZXJzaW9uZSArPSAxCiAgICAgICAgICAgIHNlbGYuX2NvbmRpemlvbmUubm90aWZ5X2FsbCgpCiAgICAgICAgICAgIHJldHVybiBzZWxmLl92ZXJzaW9uZQoKICAgIGRlZiBhdHRlbmRpX29sdHJlKHNlbGYsIHZlcnNpb25lLCB0aW1lb3V0KToKICAgICAgICAiIiJSaXRvcm5hIGxvIHN0YXRvIGFwcGVuYSBzdXBlcmEgYHZlcnNpb25lYCwgbyBxdWVsbG8gYXR0dWFsZSBhbGxvIHNjYWRlcmUuIiIiCiAgICAgICAgd2l0aCBzZWxmLl9jb25kaXppb25lOgogICAgICAgICAgICBpZiBzZWxmLl92ZXJzaW9uZSA8PSB2ZXJzaW9uZToKICAgICAgICAgICAgICAgIHNlbGYuX2NvbmRpemlvbmUud2FpdF9mb3IobGFtYmRhOiBzZWxmLl92ZXJzaW9uZSA+IHZlcnNpb25lLCB0aW1lb3V0KQogICAgICAgICAgICByZXR1cm4gc2VsZi5fdmVyc2lvbmUsIGxpc3Qoc2VsZi5fY2FydGUpLCBzZWxmLl9kYQoKCnN0YXRvID0gU3RhdG9Db25kaXZpc28oKQoKCmRlZiBwYWdpbmFfY29uX21vZGFsaXRhX2xvY2FsZShwYWdpbmEsIGluZGlyaXp6byk6CiAgICAiIiJMYSBwYWdpbmEgZGVsIGdpb2NvIGNvbiBpbCBmbGFnIGNoZSBhY2NlbmRlIGxhIHNpbmNyb25penphemlvbmUuCgogICAgSWwgZmxhZyB2YSBuZWwgPGhlYWQ+OiBsbyBzY3JpcHQgZGVsbGEgcGFnaW5hIGdpcmEgZHVyYW50ZSBpbCBwYXJzaW5nIGRlbAogICAgPGJvZHk+LCBxdWluZGkgdW4gZmxhZyBtZXNzbyBwaXUnIGluIGJhc3NvIGFycml2ZXJlYmJlIHRyb3BwbyB0YXJkaS4KICAgICIiIgogICAgaHRtbCA9IHBhZ2luYS5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikKICAgIGluaWV6aW9uZSA9ICgKICAgICAgICAiPHNjcmlwdCBkYXRhLW1vZG8tbG9jYWxlPndpbmRvdy5fX01PRE9fTE9DQUxFX18gPSAiCiAgICAgICAgKyBqc29uLmR1bXBzKHsidXJsIjogaW5kaXJpenpvfSkKICAgICAgICArICI7PC9zY3JpcHQ+XG48L2hlYWQ+IgogICAgKQogICAgaWYgIjwvaGVhZD4iIG5vdCBpbiBodG1sOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZiJ7cGFnaW5hLm5hbWV9IG5vbiBoYSA8L2hlYWQ+OiBpbXBvc3NpYmlsZSBhdHRpdmFyZSBsYSBtb2RhbGl0YScgbG9jYWxlLiIpCiAgICByZXR1cm4gaHRtbC5yZXBsYWNlKCI8L2hlYWQ+IiwgaW5pZXppb25lLCAxKS5lbmNvZGUoInV0Zi04IikKCgpjbGFzcyBHZXN0b3JlKEJhc2VIVFRQUmVxdWVzdEhhbmRsZXIpOgogICAgcHJvdG9jb2xfdmVyc2lvbiA9ICJIVFRQLzEuMSIKICAgIHNlcnZlcl92ZXJzaW9uID0gIkVuZXJnaWEiCgogICAgZGVmIGxvZ19tZXNzYWdlKHNlbGYsICphcmdzKToKICAgICAgICBwYXNzICAjIG5pZW50ZSBydW1vcmUgbmVsIHRlcm1pbmFsZSBkZWxsYSByZWdpYQoKICAgIGRlZiBfcmlzcG9uZGkoc2VsZiwgY29ycG8sIHRpcG89ImFwcGxpY2F0aW9uL2pzb247IGNoYXJzZXQ9dXRmLTgiLCBjb2RpY2U9MjAwKToKICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoY29kaWNlKQogICAgICAgIHNlbGYuc2VuZF9oZWFkZXIoIkNvbnRlbnQtVHlwZSIsIHRpcG8pCiAgICAgICAgc2VsZi5zZW5kX2hlYWRlcigiQ29udGVudC1MZW5ndGgiLCBzdHIobGVuKGNvcnBvKSkpCiAgICAgICAgc2VsZi5zZW5kX2hlYWRlcigiQ2FjaGUtQ29udHJvbCIsICJuby1zdG9yZSIpCiAgICAgICAgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgdHJ5OgogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKGNvcnBvKQogICAgICAgIGV4Y2VwdCAoQnJva2VuUGlwZUVycm9yLCBDb25uZWN0aW9uUmVzZXRFcnJvcik6CiAgICAgICAgICAgIHBhc3MgICMgc2NoZWRhIGNoaXVzYSBtZW50cmUgcmlzcG9uZGV2YW1vCgogICAgZGVmIF9qc29uKHNlbGYsIHZlcnNpb25lLCBjYXJ0ZSwgZGEsIGNvZGljZT0yMDApOgogICAgICAgIHNlbGYuX3Jpc3BvbmRpKGpzb24uZHVtcHMoeyJ2IjogdmVyc2lvbmUsICJjYXJ0ZSI6IGNhcnRlLCAiZGEiOiBkYX0pLmVuY29kZSgidXRmLTgiKSwKICAgICAgICAgICAgICAgICAgICAgICBjb2RpY2U9Y29kaWNlKQoKICAgIGRlZiBkb19HRVQoc2VsZik6CiAgICAgICAgcGVyY29yc28gPSB1cmxwYXJzZShzZWxmLnBhdGgpCgogICAgICAgIGlmIHBlcmNvcnNvLnBhdGggaW4gKCIvIiwgIi9pbmRleC5odG1sIik6CiAgICAgICAgICAgIHNlbGYuX3Jpc3BvbmRpKAogICAgICAgICAgICAgICAgcGFnaW5hX2Nvbl9tb2RhbGl0YV9sb2NhbGUoc2VsZi5zZXJ2ZXIucGFnaW5hLCBzZWxmLnNlcnZlci5pbmRpcml6em9faXBhZCksCiAgICAgICAgICAgICAgICB0aXBvPSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9dXRmLTgiKQogICAgICAgICAgICByZXR1cm4KCiAgICAgICAgaWYgcGVyY29yc28ucGF0aCA9PSAiL2FwaS9zdGF0byI6CiAgICAgICAgICAgIHBhcmFtZXRyaSA9IHBhcnNlX3FzKHBlcmNvcnNvLnF1ZXJ5KQogICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICBkYV92ZXJzaW9uZSA9IGludChwYXJhbWV0cmkuZ2V0KCJ2IiwgWyIwIl0pWzBdKQogICAgICAgICAgICBleGNlcHQgVmFsdWVFcnJvcjoKICAgICAgICAgICAgICAgIGRhX3ZlcnNpb25lID0gMAogICAgICAgICAgICB2ZXJzaW9uZSwgY2FydGUsIGRhID0gc3RhdG8uYXR0ZW5kaV9vbHRyZShkYV92ZXJzaW9uZSwgQVRURVNBX0xPTkdQT0xMKQogICAgICAgICAgICBzZWxmLl9qc29uKHZlcnNpb25lLCBjYXJ0ZSwgZGEpCiAgICAgICAgICAgIHJldHVybgoKICAgICAgICBzZWxmLl9yaXNwb25kaShiJ3siZXJyb3JlIjoibm9uIHRyb3ZhdG8ifScsIGNvZGljZT00MDQpCgogICAgZGVmIGRvX1BPU1Qoc2VsZik6CiAgICAgICAgaWYgdXJscGFyc2Uoc2VsZi5wYXRoKS5wYXRoICE9ICIvYXBpL3N0YXRvIjoKICAgICAgICAgICAgc2VsZi5fcmlzcG9uZGkoYid7ImVycm9yZSI6Im5vbiB0cm92YXRvIn0nLCBjb2RpY2U9NDA0KQogICAgICAgICAgICByZXR1cm4KCiAgICAgICAgdHJ5OgogICAgICAgICAgICBsdW5naGV6emEgPSBpbnQoc2VsZi5oZWFkZXJzLmdldCgiQ29udGVudC1MZW5ndGgiLCAiMCIpKQogICAgICAgIGV4Y2VwdCBWYWx1ZUVycm9yOgogICAgICAgICAgICBsdW5naGV6emEgPSAwCiAgICAgICAgaWYgbHVuZ2hlenphIDw9IDAgb3IgbHVuZ2hlenphID4gTElNSVRFX0NPUlBPOgogICAgICAgICAgICBzZWxmLl9yaXNwb25kaShiJ3siZXJyb3JlIjoicmljaGllc3RhIG5vbiB2YWxpZGEifScsIGNvZGljZT00MDApCiAgICAgICAgICAgIHJldHVybgoKICAgICAgICB0cnk6CiAgICAgICAgICAgIGRhdGkgPSBqc29uLmxvYWRzKHNlbGYucmZpbGUucmVhZChsdW5naGV6emEpLmRlY29kZSgidXRmLTgiKSkKICAgICAgICAgICAgY2FydGUgPSBbc3RyKGMpIGZvciBjIGluIGRhdGkuZ2V0KCJjYXJ0ZSIsIFtdKV1bOjI1XQogICAgICAgICAgICBkYSA9IHN0cihkYXRpLmdldCgiZGEiLCAiIikpWzo2NF0KICAgICAgICBleGNlcHQgKFZhbHVlRXJyb3IsIFVuaWNvZGVEZWNvZGVFcnJvcik6CiAgICAgICAgICAgIHNlbGYuX3Jpc3BvbmRpKGIneyJlcnJvcmUiOiJyaWNoaWVzdGEgbm9uIHZhbGlkYSJ9JywgY29kaWNlPTQwMCkKICAgICAgICAgICAgcmV0dXJuCgogICAgICAgIHZlcnNpb25lID0gc3RhdG8uc2NyaXZpKGNhcnRlLCBkYSkKICAgICAgICBzZWxmLl9qc29uKHZlcnNpb25lLCBjYXJ0ZSwgZGEpCgoKZGVmIGlwX2xvY2FsZSgpOgogICAgIiIiSW5kaXJpenpvIGRlbGxhIG1hY2NoaW5hIHN1bGxhIHJldGUgbG9jYWxlIChzZW56YSBjb250YXR0YXJlIG5lc3N1bm8pLiIiIgogICAgcyA9IHNvY2tldC5zb2NrZXQoc29ja2V0LkFGX0lORVQsIHNvY2tldC5TT0NLX0RHUkFNKQogICAgdHJ5OgogICAgICAgIHMuY29ubmVjdCgoIjEwLjI1NS4yNTUuMjU1IiwgMSkpICAjIG5lc3N1biBwYWNjaGV0dG8gZXNjZSBkYXZ2ZXJvCiAgICAgICAgcmV0dXJuIHMuZ2V0c29ja25hbWUoKVswXQogICAgZXhjZXB0IE9TRXJyb3I6CiAgICAgICAgcmV0dXJuICIxMjcuMC4wLjEiCiAgICBmaW5hbGx5OgogICAgICAgIHMuY2xvc2UoKQoKCmRlZiBtYWluKCk6CiAgICBwYXJzZXIgPSBhcmdwYXJzZS5Bcmd1bWVudFBhcnNlcihkZXNjcmlwdGlvbj0iVGVsZWNvbWFuZG8gbG9jYWxlIHBlciBGb250ZSBkaSBFbmVyZ2lhIikKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoIi0tcG9ydGEiLCB0eXBlPWludCwgZGVmYXVsdD04MDAwLCBoZWxwPSJwb3J0YSBkZWwgc2VydmVyIChkZWZhdWx0IDgwMDApIikKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoIi0tcGFnaW5hIiwgZGVmYXVsdD1Ob25lLAogICAgICAgICAgICAgICAgICAgICAgICBoZWxwPSJmaWxlIGRlbCBnaW9jbyBkYSBzZXJ2aXJlIChkZWZhdWx0OiBpbmRleC5odG1sIG5lbGxhIGNhcnRlbGxhKSIpCiAgICBhcmdvbWVudGkgPSBwYXJzZXIucGFyc2VfYXJncygpCgogICAgcGFnaW5hID0gdHJvdmFfcGFnaW5hKGFyZ29tZW50aS5wYWdpbmEpCiAgICBpbmRpcml6em9faXBhZCA9IGYiaHR0cDovL3tpcF9sb2NhbGUoKX06e2FyZ29tZW50aS5wb3J0YX0iCiAgICB0cnk6CiAgICAgICAgc2VydmVyID0gVGhyZWFkaW5nSFRUUFNlcnZlcigoIjAuMC4wLjAiLCBhcmdvbWVudGkucG9ydGEpLCBHZXN0b3JlKQogICAgZXhjZXB0IE9TRXJyb3IgYXMgZXJyb3JlOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoCiAgICAgICAgICAgIGYiTm9uIHJpZXNjbyBhZCBhcHJpcmUgbGEgcG9ydGEge2FyZ29tZW50aS5wb3J0YX06IHtlcnJvcmV9LlxuIgogICAgICAgICAgICAiUHJvYmFiaWxtZW50ZSBlJyBnaWEnIGluIHVzbzogcmlwcm92YSBjb24gLS1wb3J0YSA4MDAxLiIKICAgICAgICApCiAgICBzZXJ2ZXIuZGFlbW9uX3RocmVhZHMgPSBUcnVlCiAgICBzZXJ2ZXIuaW5kaXJpenpvX2lwYWQgPSBpbmRpcml6em9faXBhZAogICAgc2VydmVyLnBhZ2luYSA9IHBhZ2luYQoKICAgIHByaW50KCkKICAgIHByaW50KCIgIEZvbnRlIGRpIEVuZXJnaWEg4oCUIHRlbGVjb21hbmRvIGxvY2FsZSAobmllbnRlIGludGVybmV0KSIpCiAgICBwcmludCgiICAiICsgIi0iICogNTIpCiAgICBwcmludChmIiAgUHJvaWV0dG9yZSAocXVlc3RvIGNvbXB1dGVyKTogIGh0dHA6Ly9sb2NhbGhvc3Q6e2FyZ29tZW50aS5wb3J0YX0iKQogICAgcHJpbnQoZiIgIGlQYWQgKHN0ZXNzYSByZXRlIFdpLUZpKTogICAgICB7aW5kaXJpenpvX2lwYWR9IikKICAgIHByaW50KCkKICAgIHByaW50KGYiICBQYWdpbmEgc2Vydml0YToge3BhZ2luYS5uYW1lfSIpCiAgICBwcmludCgpCiAgICBwcmludCgiICBMZSBjYXJ0ZSBzY29wZXJ0ZSBkYSB1biBkaXNwb3NpdGl2byBjb21wYWlvbm8gc3UgdHV0dGkgZ2xpIGFsdHJpLiIpCiAgICBwcmludCgiICBDdHJsK0MgcGVyIGZlcm1hcmUuIikKICAgIHByaW50KCkKCiAgICB0cnk6CiAgICAgICAgc2VydmVyLnNlcnZlX2ZvcmV2ZXIoKQogICAgZXhjZXB0IEtleWJvYXJkSW50ZXJydXB0OgogICAgICAgIHByaW50KCJcbiAgVGVsZWNvbWFuZG8gZmVybWF0by5cbiIpCiAgICBmaW5hbGx5OgogICAgICAgIHNlcnZlci5zZXJ2ZXJfY2xvc2UoKQoKCmlmIF9fbmFtZV9fID09ICJfX21haW5fXyI6CiAgICBtYWluKCkK</script>
 
 <script>
 (function() {
@@ -927,6 +992,16 @@ function costruisciFileAutonomo() {
     barra.textContent = "";
     barra.classList.remove("attenuata");
   }
+  // il pannello di download riparte dalla schermata di scelta
+  const scelta = clone.querySelector("#offline-scelta");
+  if (scelta) {
+    scelta.hidden = false;
+    ["#offline-istruzioni-pagina", "#offline-istruzioni-cartella", "#offline-indietro"]
+      .forEach(sel => {
+        const el = clone.querySelector(sel);
+        if (el) el.hidden = true;
+      });
+  }
   const btnA = clone.querySelector("#btn-audio");
   if (btnA) {
     btnA.textContent = "Suono ON";
@@ -948,24 +1023,166 @@ function costruisciFileAutonomo() {
   return "<!DOCTYPE html>\n" + intestazione + clone.outerHTML;
 }
 
-function scaricaOffline() {
-  const blob = new Blob([costruisciFileAutonomo()], { type: "text/html;charset=utf-8" });
+function scaricaBlob(blob, nome) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "fonte-di-energia-offline.html";
+  a.download = nome;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+function scaricaPagina() {
+  scaricaBlob(new Blob([costruisciFileAutonomo()], { type: "text/html;charset=utf-8" }),
+              "fonte-di-energia-offline.html");
+}
+
+// --- Creazione dello zip (senza librerie esterne, file archiviati non compressi) ---
+const TABELLA_CRC = (function () {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(dati) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < dati.length; i++) c = TABELLA_CRC[(c ^ dati[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function creaZip(elenco) {
+  const codifica = new TextEncoder();
+  const pezzi = [];
+  const centrale = [];
+  const adesso = new Date();
+  const oraDos = ((adesso.getHours() << 11) | (adesso.getMinutes() << 5) |
+                  (adesso.getSeconds() >> 1)) & 0xFFFF;
+  const dataDos = (((adesso.getFullYear() - 1980) << 9) | ((adesso.getMonth() + 1) << 5) |
+                   adesso.getDate()) & 0xFFFF;
+  let posizione = 0;
+
+  elenco.forEach(file => {
+    const nome = codifica.encode(file.nome);
+    const dati = file.dati;
+    const crc = crc32(dati);
+
+    const locale = new DataView(new ArrayBuffer(30));
+    locale.setUint32(0, 0x04034b50, true);  // firma
+    locale.setUint16(4, 20, true);          // versione necessaria
+    locale.setUint16(6, 0x0800, true);      // nomi in UTF-8
+    locale.setUint16(8, 0, true);           // metodo: archiviato
+    locale.setUint16(10, oraDos, true);
+    locale.setUint16(12, dataDos, true);
+    locale.setUint32(14, crc, true);
+    locale.setUint32(18, dati.length, true);
+    locale.setUint32(22, dati.length, true);
+    locale.setUint16(26, nome.length, true);
+    locale.setUint16(28, 0, true);
+    pezzi.push(new Uint8Array(locale.buffer), nome, dati);
+
+    const voce = new DataView(new ArrayBuffer(46));
+    voce.setUint32(0, 0x02014b50, true);
+    voce.setUint16(4, 20, true);            // versione di chi ha scritto
+    voce.setUint16(6, 20, true);
+    voce.setUint16(8, 0x0800, true);
+    voce.setUint16(10, 0, true);
+    voce.setUint16(12, oraDos, true);
+    voce.setUint16(14, dataDos, true);
+    voce.setUint32(16, crc, true);
+    voce.setUint32(20, dati.length, true);
+    voce.setUint32(24, dati.length, true);
+    voce.setUint16(28, nome.length, true);
+    voce.setUint32(42, posizione, true);    // offset dell'intestazione locale
+    centrale.push(new Uint8Array(voce.buffer), nome);
+
+    posizione += 30 + nome.length + dati.length;
+  });
+
+  const dimensioneCentrale = centrale.reduce((somma, p) => somma + p.length, 0);
+  const chiusura = new DataView(new ArrayBuffer(22));
+  chiusura.setUint32(0, 0x06054b50, true);
+  chiusura.setUint16(8, elenco.length, true);
+  chiusura.setUint16(10, elenco.length, true);
+  chiusura.setUint32(12, dimensioneCentrale, true);
+  chiusura.setUint32(16, posizione, true);
+
+  return new Blob(pezzi.concat(centrale, [new Uint8Array(chiusura.buffer)]),
+                  { type: "application/zip" });
+}
+
+function testoTelecomando() {
+  const b64 = document.getElementById("script-telecomando").textContent.replace(/\s+/g, "");
+  const binario = atob(b64);
+  const byte = new Uint8Array(binario.length);
+  for (let i = 0; i < binario.length; i++) byte[i] = binario.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(byte);
+}
+
+const ISTRUZIONI = [
+  "Fonte di Energia - fosforo: la festa della scienza",
+  "==================================================",
+  "",
+  "GIOCARE SUL COMPUTER",
+  "  Doppio clic su index.html: si apre nel browser e funziona senza internet.",
+  "  F11 (su Mac Ctrl+Cmd+F) per lo schermo intero.",
+  "",
+  "COMANDARE DALL'IPAD (proiettore + telecomando, senza internet)",
+  "  1. Apri il Terminale dentro questa cartella e lancia:",
+  "       python3 telecomando.py          (su Windows: py telecomando.py)",
+  "     Se la porta e' occupata: python3 telecomando.py --porta 8001",
+  "  2. Lo script stampa due indirizzi.",
+  "     Apri quello \"Proiettore\" sul computer collegato al proiettore.",
+  "     Apri quello \"iPad\" sul tablet, collegato alla STESSA rete Wi-Fi",
+  "     (va bene anche l'hotspot del telefono: internet non serve).",
+  "  3. Le carte scoperte dall'iPad compaiono sul proiettore e viceversa,",
+  "     come pure \"Scopri tutte\" e \"Reset\". Possono collegarsi piu' schermi.",
+  "  4. Ctrl+C nel Terminale per fermare il server.",
+  "",
+  "Serve Python 3: gia' presente su macOS e Linux, su Windows si installa",
+  "dal Microsoft Store o da python.org.",
+  ""
+].join("\n");
+
+function scaricaCartella() {
+  const codifica = new TextEncoder();
+  scaricaBlob(creaZip([
+    { nome: "energia/index.html", dati: codifica.encode(costruisciFileAutonomo()) },
+    { nome: "energia/telecomando.py", dati: codifica.encode(testoTelecomando()) },
+    { nome: "energia/ISTRUZIONI.txt", dati: codifica.encode(ISTRUZIONI) }
+  ]), "energia-telecomando.zip");
+}
+
+// --- Pannello con le due opzioni ---
 const offlineOverlay = document.getElementById("offline-overlay");
+const sezioneScelta = document.getElementById("offline-scelta");
+const sezionePagina = document.getElementById("offline-istruzioni-pagina");
+const sezioneCartella = document.getElementById("offline-istruzioni-cartella");
+const btnIndietro = document.getElementById("offline-indietro");
+
+function mostraSezione(sezione) {
+  [sezioneScelta, sezionePagina, sezioneCartella].forEach(s => { s.hidden = s !== sezione; });
+  btnIndietro.hidden = sezione === sezioneScelta;
+}
+
 document.getElementById("btn-download").addEventListener("click", () => {
-  scaricaOffline();
+  mostraSezione(sezioneScelta);
   offlineOverlay.classList.add("show");
 });
-document.getElementById("offline-again").addEventListener("click", scaricaOffline);
+document.getElementById("scarica-pagina").addEventListener("click", () => {
+  scaricaPagina();
+  mostraSezione(sezionePagina);
+});
+document.getElementById("scarica-cartella").addEventListener("click", () => {
+  scaricaCartella();
+  mostraSezione(sezioneCartella);
+});
+btnIndietro.addEventListener("click", () => mostraSezione(sezioneScelta));
 document.getElementById("offline-close").addEventListener("click", () => {
   offlineOverlay.classList.remove("show");
 });
